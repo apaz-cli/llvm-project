@@ -140,6 +140,10 @@ void FakeStack::HandleNoReturn() {
 // We do it based on their 'real_stack' values -- everything that is lower
 // than the current real_stack is garbage.
 NOINLINE void FakeStack::GC(uptr real_stack) {
+  AsanThread *ct = GetCurrentThread();
+  if ((real_stack < ct->stack_bottom()) | (real_stack > ct->stack_top()))
+    return;
+
   for (uptr class_id = 0; class_id < kNumberOfSizeClasses; class_id++) {
     u8 *flags = GetFlags(stack_size_log(), class_id);
     for (uptr i = 0, n = NumberOfFrames(stack_size_log(), class_id); i < n;
